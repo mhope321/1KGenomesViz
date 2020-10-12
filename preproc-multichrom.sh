@@ -17,26 +17,16 @@ do
 	link=$address$prefix$chrom$suffix_auto
 	wget $link 
 	gzip -cd $file |
-	awk -F "\t|;|=" 'NR> 126 {
-		if ($11=="CNV")
-        	{
-       		 	if ($18=="EX_TARGET")
-                	{
-               			print $1, $2, $3, $4, $5, $17, $24, $22, $26, $28, $30, $32
-                		next
-                	}
-        		print $1, $2, $3, $4, $5, $17, $23, $21, $25, $27, $29, $31
-        		next
-        	}
-		if ($20=="EX_TARGET")
-        	{
-        		print $1, $2, $3, $4, $5, $19, $24, $22, $26, $28, $30, $32
-        		next
-        	}
-		else
-        	{
-        		print $1, $2, $3, $4, $5, $19, $23, $21, $25, $27, $29, $31
-        	}
+	awk -F "\t|;|=" 'NR> 253 {
+	if ($28=="VT")
+        {
+        	print $1, $2, $3, $4, $5, $29, $11, $23, $21, $19, $25, $27
+        	next
+        }
+	else
+        {
+        print $1, $2, $3, $4, $5, $31, $11, $23, $21, $19, $25, $27
+        }
 	}' > Var-$chrom.txt
 	rm $file
 done
