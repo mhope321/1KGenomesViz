@@ -35,3 +35,15 @@ var_grange = GRanges(seqnames=var1$V1,ranges=var1_irange,strand=NULL)
 result = intersect(var_grange,test_grange)
 ch1_starts = start(result)
 var1_result = var1 %>% filter(V2 %in% ch1_starts)
+
+exons = fread(file="./exons.csv",sep=",",header=F)
+exons1 = exons %>% filter(V1==1)
+colnames(exons1) = c("chr","start","stop","name")
+
+chr1_irange=IRanges(start=exons1$start,end=exons1$stop)
+test_grange = GRanges(seqnames=exons1$chr,ranges=chr1_irange,strand=NULL)
+mcols(test_grange)$genename = exons1$name
+result = intersect(var_grange,test_grange)
+ch1_starts = start(result)
+var1_result2 = var1 %>% filter(V2 %in% ch1_starts)
+
