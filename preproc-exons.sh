@@ -5,9 +5,9 @@
 gzip -cd Homo_sapiens.GRCh38.101.chr.gtf.gz | 
 awk 'BEGIN {OFS=","}
 	{
-	if($3=="exon")
+	if($3=="CDS")
 	{
-	print $1, $4, $5, $10
+	print $1, $4, $5, $20
 	}
      }' | 
 sort | 
