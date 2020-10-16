@@ -27,5 +27,8 @@ for (chr in 1:22){
   var_final = rbind(var_final,var_result)
 }
 
+var_final = var_final %>% select(chr=V1,pos=begin,id=V3,name=names,ref=V4,
+                       allele=V5,type=V6,AF=V7,AF_AFR=V8,
+                       AF_AMR=V9,AF_EAS=V10,AF_EUR=V11,AF_SAS=V12)
 fwrite(var_final,file="ExonVariants.csv",sep=",")
 
