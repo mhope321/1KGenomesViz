@@ -7,9 +7,9 @@ snps = "200676709,200505207,140739101"
 suffix_url = "&rettype=json&retmode=text"
 query = paste0(prefix_url,snps,suffix_url)
 
-test <- GET(url=query)
-variant_text <- content(test, as="text", encoding="UTF-8")
-variant_json <- fromJSON(variant_text,flatten=TRUE)
+fromdbsnp = GET(url=query)
+fromdbsnp_text = content(fromdbsnp, as="text", encoding="UTF-8")
+#variant_json <- fromJSON(variant_text,flatten=TRUE)
 
 library(stringr)
 
@@ -18,23 +18,21 @@ parse_json = function(x)
   result = list()
   coords = str_locate_all(x,"refsnp_id")[[1]][,1]
   n_records = length(coords)
+  #result = vector(mode="list",length=n_records)
   for (i in 1:n_records)
   {
     if (i==n_records)
     {
-      json = str_sub(x,(coords[i]-2),(nchar(x)))
-      result = append(result,json)
+      text = str_sub(x,(coords[i]-2),(nchar(x)))
+      json = fromJSON(text,flatten=TRUE)
+      result[[length(result)+1]] = json
     } else {
-      json = str_sub(x,(coords[i]-2),(coords[i+1]-2))
-      result = append(result,json)
+      text = str_sub(x,(coords[i]-2),(coords[i+1]-3))
+      json = fromJSON(text,flatten=TRUE)
+      result[[length(result)+1]] = json
     }
   }
   return(result)
 }
 
-variant_json <- fromJSON(json3,flatten=TRUE)
-json1 = str_sub(variant_text,1,17921)
-json2 = str_sub(variant_text,17922,34696)
-json3 = str_sub(variant_text,34697,51692)
-
-coords = str_locate_all(variant_text,"refsnp_id")
+snps_json = parse_json(fromdbsnp_text)
