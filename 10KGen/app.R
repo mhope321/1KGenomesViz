@@ -7,23 +7,22 @@
 #    http://shiny.rstudio.com/
 #
 
-library(shiny)
+
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
 
     # Application title
-    titlePanel("Old Faithful Geyser Data"),
     tags$h1("1000 Genomes Visualization"),
-
+    dataTableOutput("table"),
     hr(),
     fluidRow(
         column(6,
                h4("Diamonds Explorer"),
                br(),
                selectInput("gene_choice", label = h3("Choose Gene"), 
-                           choices = list("Choice 1" = 1, "Choice 2" = 2, "Choice 3" = 3), 
-                           selected = 1),
+                           choices = unique(vars$name), 
+                           selected = "NOTCH1"),
                # #sliderInput('sampleSize', 'Sample Size', 
                #             min=1, max=nrow(dataset), value=min(1000, nrow(dataset)), 
                #             step=500, round=0),
@@ -46,8 +45,13 @@ ui <- fluidPage(
 )
 
 # Define server logic required to draw a histogram
-server <- function(input, output) {
+server <- function(input, output,session) {
 
+    gene_variant_input=reactive(
+        vars %>% 
+            filter(name==input$gene_choice) 
+    )
+    
     output$distPlot <- renderPlot({
         # generate bins based on input$bins from ui.R
         x    <- faithful[, 2]
@@ -56,6 +60,10 @@ server <- function(input, output) {
         # draw the histogram with the specified number of bins
         hist(x, breaks = bins, col = 'darkgray', border = 'white')
     })
+    
+    output$table = renderDataTable(
+        datatable(gene_variant_input())
+    )
 }
 
 # Run the application 
