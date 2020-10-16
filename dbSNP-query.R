@@ -1,5 +1,6 @@
 library(jsonlite)
 library(httr)
+library(stringr)
 
 prefix_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=snp&id="
 #snps = "200676709,200505207,140739101"
@@ -10,9 +11,6 @@ query = paste0(prefix_url,snps,suffix_url)
 
 fromdbsnp = GET(url=query)
 fromdbsnp_text = content(fromdbsnp, as="text", encoding="UTF-8")
-#variant_json <- fromJSON(variant_text,flatten=TRUE)
-
-library(stringr)
 
 parse_json = function(x)
 {
@@ -54,9 +52,17 @@ clinical_info = function(x){
   for (i in 1:length(x))
   {
     snp_info = x[[i]]$refsnp_id
-    clinical_info = x[[i]]$primary_snapshot_data$allele_annotations$clinical
-    result = append(result,snp_info)
-    result = append(result,clinical_info)
+    clinical_frame = x[[i]]$primary_snapshot_data$allele_annotations$clinical
+    clinical_info = data.frame()
+    for (j in 1:length(clinical_frame))
+    {
+      if(dim(clinical_frame[[j]])[1]==0)
+        next
+      clinical_info_tmp = data.frame("allele_id"=clinical_frame[[j]]$allele_id,"disease_names"=unlist(clinical_frame[[j]]$disease_names),"clinical_significance"=unlist(clinical_frame[[j]]$clinical_significance))   
+      clinical_info = rbind(clinical_info,clinical_info_tmp)
+    }
+    full_list = append(snp_info,clinical_info)
+    result[[length(result)+1]] = full_list
   }
   return(result)
 }
