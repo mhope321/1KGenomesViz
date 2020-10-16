@@ -16,13 +16,13 @@ ui <- fluidPage(
         sidebarPanel(
             selectInput("gene_choice", label = h3("Type/Select Gene"), 
                         choices = unique(vars$name), 
-                        selected = NULL),
+                        selected = "ETS1"),
             selectInput("variant_choice", label = h3("Type/Select Variant"), 
-                        choices = unique(vars$chr), 
+                        choices = vars[vars$name=="ETS1","id"], 
                         selected = NULL),
-            checkboxGroupInput("MAF", label = h3("Minor allele frequency cutoff"), 
-                               choices = list(">10%" = 1, ">1%" = 2, ">0.1%" = 3, ">0.01%" = 4),
-                               selected = 1)
+            radioButtons("MAF", label = h3("Minor allele frequency cutoff"),
+                         choices = list(">10%" = 1, ">1%" = 2, ">0.1%" = 3, ">0.01%" = 4), 
+                         selected = 1),
         ),
         mainPanel(
             tabsetPanel(
@@ -41,26 +41,17 @@ ui <- fluidPage(
 # Define server logic required to draw a histogram
 server <- function(input, output,session) {
     observe(
-        updateSelectizeInput(session,'variant_choice',
+        updateSelectInput(session,"variant_choice",
                              choices=vars[vars$name==input$gene_selection,"id"])
     )
     
     gene_variant_input=reactive(
         vars %>% 
             filter(name==input$gene_choice) %>%
-            filter(case_when(input$MAF==1 ~ AF>=.1,input$MAF==2 ~ AF>=.01,
-                             input$MAF==3 ~ AF>=.001,input$MAF==4 ~ AF>=.0001,)) %>%
+            filter(case_when(input$MAF==1 ~ AF>=.1,input$MAF==2 ~ AF>=.01,input$MAF==3 ~ AF>=.001,input$MAF==4 ~ AF>=.0001)) %>%
+            #filter(ifelse(input$variant_choice=="All",TRUE,id==input$variant_choice)) %>%
             arrange(desc(AF))
     )
-    
-    output$distPlot <- renderPlot({
-        # generate bins based on input$bins from ui.R
-        x    <- faithful[, 2]
-        bins <- seq(min(x), max(x), length.out = input$bins + 1)
-
-        # draw the histogram with the specified number of bins
-        hist(x, breaks = bins, col = 'darkgray', border = 'white')
-    })
     
     output$table = renderDataTable(
         datatable(gene_variant_input())
