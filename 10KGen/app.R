@@ -11,18 +11,28 @@
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
-
-    # Application title
     tags$h1("1000 Genomes Visualization"),
+    sidebarLayout(
+        sidebarPanel(
+            selectInput("gene_choice", label = h3("Type/Select Gene"), 
+                        choices = unique(vars$name), 
+                        selected = "ETS1"),
+            selectInput("variant_choice", label = h3("Type/Select Variant"), 
+                        choices = unique(vars$name), 
+                        selected = "ETS1"),
+            checkboxGroupInput("MAF", label = h3("Minor allele frequency cutoff"), 
+                               choices = list(">10%" = 1, ">1%" = 2, ">0.1%" = 3, ">0.01%" = 4),
+                               selected = 1)
+        ),
     dataTableOutput("table"),
     hr(),
     fluidRow(
         column(6,
                h4("Diamonds Explorer"),
                br(),
-               selectInput("gene_choice", label = h3("Choose Gene"), 
+               selectInput("gene_choice", label = h3("Type/Select Gene"), 
                            choices = unique(vars$name), 
-                           selected = "NOTCH1"),
+                           selected = "ETS1"),
                # #sliderInput('sampleSize', 'Sample Size', 
                #             min=1, max=nrow(dataset), value=min(1000, nrow(dataset)), 
                #             step=500, round=0),
@@ -46,10 +56,15 @@ ui <- fluidPage(
 
 # Define server logic required to draw a histogram
 server <- function(input, output,session) {
-
+    observe(
+        updateSelectizeInput(session,'variant_choice',
+                             choices=unique(vars[vars$name==input$gene_selection,"id"]))
+    )
+    
     gene_variant_input=reactive(
         vars %>% 
-            filter(name==input$gene_choice) 
+            filter(name==input$gene_choice) %>%
+            arrange(desc(AF))
     )
     
     output$distPlot <- renderPlot({
