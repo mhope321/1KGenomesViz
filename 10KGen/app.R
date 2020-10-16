@@ -16,54 +16,40 @@ ui <- fluidPage(
         sidebarPanel(
             selectInput("gene_choice", label = h3("Type/Select Gene"), 
                         choices = unique(vars$name), 
-                        selected = "ETS1"),
+                        selected = NULL),
             selectInput("variant_choice", label = h3("Type/Select Variant"), 
-                        choices = unique(vars$name), 
-                        selected = "ETS1"),
+                        choices = unique(vars$chr), 
+                        selected = NULL),
             checkboxGroupInput("MAF", label = h3("Minor allele frequency cutoff"), 
                                choices = list(">10%" = 1, ">1%" = 2, ">0.1%" = 3, ">0.01%" = 4),
                                selected = 1)
         ),
-    dataTableOutput("table"),
-    hr(),
-    fluidRow(
-        column(6,
-               h4("Diamonds Explorer"),
-               br(),
-               selectInput("gene_choice", label = h3("Type/Select Gene"), 
-                           choices = unique(vars$name), 
-                           selected = "ETS1"),
-               # #sliderInput('sampleSize', 'Sample Size', 
-               #             min=1, max=nrow(dataset), value=min(1000, nrow(dataset)), 
-               #             step=500, round=0),
-               # br(),
-               # checkboxInput('jitter', 'Jitter'),
-               # checkboxInput('smooth', 'Smooth')
-        ),
-        # column(4, offset = 1,
-        #        h4("New Column"),
-        #        # selectInput('x', 'X', names(dataset)),
-        #        # selectInput('y', 'Y', names(dataset), names(dataset)[[2]]),
-        #        # selectInput('color', 'Color', c('None', names(dataset)))
-        # ),
-        column(6,
-               h4("New Column"),
-               # selectInput('facet_row', 'Facet Row', c(None='.', names(dataset))),
-               # selectInput('facet_col', 'Facet Column', c(None='.', names(dataset)))
+        mainPanel(
+            tabsetPanel(
+                # tabPanel("Plots", 
+                #          fluidRow(
+                #              column(5, plotOutput("count")),
+                #              column(7, plotOutput("delay"))
+                #          )), 
+                tabPanel("Table", dataTableOutput("table"))
+            )
         )
-    )
+    ),
+    hr(),
 )
 
 # Define server logic required to draw a histogram
 server <- function(input, output,session) {
     observe(
         updateSelectizeInput(session,'variant_choice',
-                             choices=unique(vars[vars$name==input$gene_selection,"id"]))
+                             choices=vars[vars$name==input$gene_selection,"id"])
     )
     
     gene_variant_input=reactive(
         vars %>% 
             filter(name==input$gene_choice) %>%
+            filter(case_when(input$MAF==1 ~ AF>=.1,input$MAF==2 ~ AF>=.01,
+                             input$MAF==3 ~ AF>=.001,input$MAF==4 ~ AF>=.0001,)) %>%
             arrange(desc(AF))
     )
     
