@@ -17,11 +17,8 @@ ui <- fluidPage(
             selectInput("gene_choice", label = h3("Type/Select Gene"), 
                         choices = unique(vars$name), 
                         selected = "ETS1"),
-            selectInput("variant_choice", label = h3("Type/Select Variant"), 
-                        choices = vars[vars$name=="ETS1","id"], 
-                        selected = NULL),
             radioButtons("MAF", label = h3("Minor allele frequency cutoff"),
-                         choices = list(">10%" = 1, ">1%" = 2, ">0.1%" = 3, ">0.01%" = 4), 
+                         choices = list(">10%" = 1, ">1%" = 2, ">0.1%" = 3), 
                          selected = 1),
         ),
         mainPanel(
@@ -31,7 +28,10 @@ ui <- fluidPage(
                 #              column(5, plotOutput("count")),
                 #              column(7, plotOutput("delay"))
                 #          )), 
-                tabPanel("Table", dataTableOutput("table"))
+                tabPanel("Table", dataTableOutput("table")),
+                tabPanel("Clinical",),
+                tabPanel("Genome Distribution"),
+                tabPanel("Allele Frequency by Race",plotOutput("AF_race"))
             )
         )
     ),
@@ -40,21 +40,21 @@ ui <- fluidPage(
 
 # Define server logic required to draw a histogram
 server <- function(input, output,session) {
-    observe(
-        updateSelectInput(session,"variant_choice",
-                             choices=vars[vars$name==input$gene_selection,"id"])
-    )
     
     gene_variant_input=reactive(
         vars %>% 
             filter(name==input$gene_choice) %>%
-            filter(case_when(input$MAF==1 ~ AF>=.1,input$MAF==2 ~ AF>=.01,input$MAF==3 ~ AF>=.001,input$MAF==4 ~ AF>=.0001)) %>%
-            #filter(ifelse(input$variant_choice=="All",TRUE,id==input$variant_choice)) %>%
+            filter(case_when(input$MAF==1 ~ AF>=.1,input$MAF==2 ~ AF>=.01,input$MAF==3 ~ AF>=.001)) %>%
             arrange(desc(AF))
     )
     
     output$table = renderDataTable(
         datatable(gene_variant_input())
+    )
+    
+    output$AF_race = renderPlot(
+        gene_variant_input() %>% gather(key="AF",value="freq",AF,AF_AFR,AF_AMR,AF_EAS,AF_EUR,AF_SAS) %>%
+            ggplot(aes(x=AF,y=freq,fill=AF))+geom_boxplot()
     )
 }
 
