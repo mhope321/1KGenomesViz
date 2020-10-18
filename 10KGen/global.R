@@ -9,6 +9,7 @@ library(RColorBrewer)
 library(TxDb.Hsapiens.UCSC.hg38.knownGene)
 library(Gviz)
 library(GenomicRanges)
+library(shinythemes)
 
 setwd("~/Desktop/NYCDSA/10KGen/10KGen")
 

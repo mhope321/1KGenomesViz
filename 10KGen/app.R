@@ -10,8 +10,8 @@
 
 
 # Define UI for application that draws a histogram
-ui <- fluidPage(
-    #tags$h1("1000 Genomes Visualization"),
+ui <- fluidPage(theme=shinytheme("flatly"),
+    titlePanel("1000 Genomes Project Visualization"),
     sidebarLayout(
         sidebarPanel(
             selectInput("gene_choice", label = h3("Type/Select Gene"), 
@@ -20,6 +20,14 @@ ui <- fluidPage(
             radioButtons("MAF", label = h3("Minor allele frequency cutoff"),
                          choices = list(">10%" = 1, ">1%" = 2, ">0.1%" = 3, "No Cutoff" = 4), 
                          selected = 4),
+            br(2),
+            br(),
+            br(),
+            br(),
+            h5("About"),
+            h6("This app was developed by Matt Hope, as part of the NYC Data Science Academy.
+               Please reach out with feedback at:"),
+            h6("https://github.com/mhope321/1KGenomesViz")
         ),
         mainPanel(
             tabsetPanel(
