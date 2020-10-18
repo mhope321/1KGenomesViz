@@ -27,3 +27,4 @@ compare_af_maxes = function(x)
 }
 
 txdb = TxDb.Hsapiens.UCSC.hg38.knownGene
+grtrack = GeneRegionTrack(range=txdb,name="Gene Model")

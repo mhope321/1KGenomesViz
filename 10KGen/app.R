@@ -50,11 +50,10 @@ server <- function(input, output,session) {
     output$genome = renderPlot({
         tmp = gene_variant_input()
         var_irange=IRanges(start=tmp$pos,end=tmp$pos)
-        var_grange = GRanges(seqnames=tmp$chr,ranges=var_irange,strand=NULL)
-        atrack = AnnotationTrack(var_grange, name = input$gene_choice)
+        var_grange = GRanges(seqnames=paste0("chr",tmp$chr),ranges=var_irange,strand=NULL)
+        atrack = AnnotationTrack(var_grange, name = paste0(input$gene_choice," Varaints"))
         gtrack = GenomeAxisTrack()
-        grtrack = GeneRegionTrack(range=txdb,chromosome = paste0("chr",tmp$chr[1]),start=start(range(var_grange)),end=end(range(var_grange)))
-        plotTracks(list(gtrack, atrack, grtrack3))
+        plotTracks(list(gtrack, atrack, grtrack),from=start(range(var_grange)),to=end(range(var_grange)))
     })
     
     allele_freq=reactive(
@@ -68,7 +67,7 @@ server <- function(input, output,session) {
             + scale_fill_manual(values=pallete_blue) + xlab("Populations") +ylab("Mean Allele Frequency")+coord_cartesian(ylim=c(0,0.25))
     )
     output$AF_race_rel = renderPlot(
-        allele_freq() %>% mutate(freq = freq/first(freq)) %>%
+        allele_freq() %>% mutate(freq = freq/dplyr::first(freq)) %>%
             ggplot(aes(x=AF,y=freq,fill=AF))+geom_col()+ggtitle(paste0(input$gene_choice," Mean Allele Frequencies, Normalized to Global Allele Frequency"))
         + scale_fill_manual(values=pallete_green) + xlab("Populations") +ylab("Relative Mean Allele Frequency")
     )  
