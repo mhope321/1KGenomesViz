@@ -15,23 +15,19 @@ ui <- fluidPage(
     sidebarLayout(
         sidebarPanel(
             selectInput("gene_choice", label = h3("Type/Select Gene"), 
-                        choices = unique(vars$name), 
+                        choices = sort(unique(vars$name)), 
                         selected = "ETS1"),
             radioButtons("MAF", label = h3("Minor allele frequency cutoff"),
-                         choices = list(">10%" = 1, ">1%" = 2, ">0.1%" = 3), 
-                         selected = 1),
+                         choices = list(">10%" = 1, ">1%" = 2, ">0.1%" = 3, "No Cutoff" = 4), 
+                         selected = 4),
         ),
         mainPanel(
             tabsetPanel(
-                # tabPanel("Plots", 
-                #          fluidRow(
-                #              column(5, plotOutput("count")),
-                #              column(7, plotOutput("delay"))
-                #          )), 
                 tabPanel("Table", dataTableOutput("table")),
-                tabPanel("Clinical",),
+                tabPanel("Clinical"),
                 tabPanel("Genome Distribution"),
-                tabPanel("Allele Frequency by Race",plotOutput("AF_race"))
+                tabPanel("Allele Frequency by Population",plotOutput("AF_race_rel"),plotOutput("AF_race_abs")),
+                tabPanel("Top Divergent Alleles by Population",plotOutput("enriched_vars"))
             )
         )
     ),
@@ -44,7 +40,7 @@ server <- function(input, output,session) {
     gene_variant_input=reactive(
         vars %>% 
             filter(name==input$gene_choice) %>%
-            filter(case_when(input$MAF==1 ~ AF>=.1,input$MAF==2 ~ AF>=.01,input$MAF==3 ~ AF>=.001)) %>%
+            filter(case_when(input$MAF==1 ~ AF>=.1,input$MAF==2 ~ AF>=.01,input$MAF==3 ~ AF>=.001,input$MAF==4 ~ TRUE)) %>%
             arrange(desc(AF))
     )
     
@@ -52,9 +48,25 @@ server <- function(input, output,session) {
         datatable(gene_variant_input())
     )
     
-    output$AF_race = renderPlot(
-        gene_variant_input() %>% gather(key="AF",value="freq",AF,AF_AFR,AF_AMR,AF_EAS,AF_EUR,AF_SAS) %>%
-            ggplot(aes(x=AF,y=freq,fill=AF))+geom_boxplot()
+    allele_freq=reactive(
+        gene_variant_input() %>% gather(key="AF",value="freq",AF,AF_AFR,AF_AMR,AF_EAS,AF_EUR,AF_SAS) %>% 
+            group_by(AF) %>% summarise(freq=mean(freq))
+    )
+    
+    output$AF_race_abs = renderPlot(
+        allele_freq() %>%
+            ggplot(aes(x=AF,y=freq,fill=AF))+geom_col()+ggtitle(paste0(input$gene_choice," Mean Allele Frequencies, Un-Normalized"))
+            + scale_fill_manual(values=pallete_blue) + xlab("Populations") +ylab("Mean Allele Frequency")+coord_cartesian(ylim=c(0,0.25))
+    )
+    output$AF_race_rel = renderPlot(
+        allele_freq() %>% mutate(freq = freq/first(freq)) %>%
+            ggplot(aes(x=AF,y=freq,fill=AF))+geom_col()+ggtitle(paste0(input$gene_choice," Mean Allele Frequencies, Normalized to Global Allele Frequency"))
+        + scale_fill_manual(values=pallete_green) + xlab("Populations") +ylab("Relative Mean Allele Frequency")
+    )  
+    output$enriched_vars = renderPlot(
+        gene_variant_input() %>% mutate(AF_AFR=AF_AFR/AF,AF_AMR=AF_AMR/AF,AF_EAS=AF_EAS/AF,AF_EUR=AF_EUR/AF,AF_SAS=AF_SAS/AF) %>%
+            mutate(max=pmax(AF_AFR,AF_AMR,AF_EAS,AF_EUR,AF_SAS)) %>% filter(max>1) %>% arrange(desc(max)) %>% top_n(.,10) %>%
+            gather(key="AF",value="freq",AF_AFR,AF_AMR,AF_EAS,AF_EUR,AF_SAS) %>% ggplot(aes(x=freq,y=id))+geom_col(aes(fill=AF),position="dodge")
     )
 }
 
