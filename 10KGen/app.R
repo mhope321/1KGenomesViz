@@ -20,14 +20,13 @@ ui <- fluidPage(theme=shinytheme("flatly"),
             radioButtons("MAF", label = h3("Minor allele frequency cutoff"),
                          choices = list(">10%" = 1, ">1%" = 2, ">0.1%" = 3, "No Cutoff" = 4), 
                          selected = 4),
-            br(2),
             br(),
             br(),
             br(),
             h5("About"),
             h6("This app was developed by Matt Hope, as part of the NYC Data Science Academy.
                Please reach out with feedback at:"),
-            h6("https://github.com/mhope321/1KGenomesViz")
+            shiny::tags$link("https://github.com/mhope321/1KGenomesViz")
         ),
         mainPanel(
             tabsetPanel(
