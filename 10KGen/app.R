@@ -25,7 +25,7 @@ ui <- fluidPage(
             tabsetPanel(
                 tabPanel("Table", dataTableOutput("table")),
                 tabPanel("Clinical"),
-                tabPanel("Genome Distribution"),
+                tabPanel("Genome Distribution",plotOutput("genome")),
                 tabPanel("Allele Frequency by Population",plotOutput("AF_race_rel"),plotOutput("AF_race_abs")),
                 tabPanel("Top Divergent Alleles by Population",plotOutput("enriched_vars"))
             )
@@ -46,6 +46,17 @@ server <- function(input, output,session) {
     
     output$table = renderDataTable(
         datatable(gene_variant_input())
+    )
+    
+    tmp = gene_variant_input()
+    var_irange=IRanges(start=tmp$pos,end=tmp$pos)
+    var_grange = GRanges(seqnames=tmp$chr,ranges=var_irange,strand=NULL)
+    atrack = AnnotationTrack(var_grange, name = input$gene_choice)
+    gtrack = GenomeAxisTrack()
+    grtrack3 = GeneRegionTrack(range=txdb,chromosome = paste0("chr",),start=start(range(var_grange)),end=end(range(var_grange)))
+    
+    output$genome = renderPlot(
+        
     )
     
     allele_freq=reactive(

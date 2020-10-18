@@ -6,6 +6,10 @@ library(DT)
 library(tidyr)
 library(data.table)
 library(RColorBrewer)
+library(TxDb.Hsapiens.UCSC.hg38.knownGene)
+library(Gviz)
+library(GenomicRanges)
+
 setwd("~/Desktop/NYCDSA/10KGen/10KGen")
 
 vars = fread(file="./data/ExonVariants.csv",header=T)
@@ -21,3 +25,5 @@ compare_af_maxes = function(x)
   y=max(x$AF_AFR,x$AF_AMR,x$AF_EAS,x$AF_EUR,x$AF_SAS)
   return(y)
 }
+
+txdb = TxDb.Hsapiens.UCSC.hg38.knownGene
