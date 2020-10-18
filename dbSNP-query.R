@@ -2,10 +2,18 @@ library(jsonlite)
 library(httr)
 library(stringr)
 
-prefix_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=snp&id="
+# test_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=snp&term=%28FLT3%5BGene%20Name%5D%29%20AND%20%22pathogenic%22%5BClinical%20Significance%5D%20"
+# test_db = GET(url=test_url)
+# test_text = content(test_db, as="text", encoding="UTF-8")
+
+notch_vars_refs = str_replace(notch_vars_refs,"rs","")
+notch_vars_refs = str_c(notch_vars_refs,collapse=",")
+snps = notch_vars_refs
 #snps = "200676709,200505207,140739101"
 #snps = "200676709"
-snps= "268,328"
+#snps= "268,328"
+
+prefix_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=snp&id="
 suffix_url = "&rettype=json&retmode=text"
 query = paste0(prefix_url,snps,suffix_url)
 
