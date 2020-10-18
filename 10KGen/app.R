@@ -11,7 +11,7 @@
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
-    tags$h1("1000 Genomes Visualization"),
+    #tags$h1("1000 Genomes Visualization"),
     sidebarLayout(
         sidebarPanel(
             selectInput("gene_choice", label = h3("Type/Select Gene"), 
@@ -24,7 +24,6 @@ ui <- fluidPage(
         mainPanel(
             tabsetPanel(
                 tabPanel("Table", dataTableOutput("table")),
-                tabPanel("Clinical"),
                 tabPanel("Genome Distribution",plotOutput("genome")),
                 tabPanel("Allele Frequency by Population",plotOutput("AF_race_rel"),plotOutput("AF_race_abs")),
                 tabPanel("Top Divergent Alleles by Population",plotOutput("enriched_vars"))
@@ -48,16 +47,15 @@ server <- function(input, output,session) {
         datatable(gene_variant_input())
     )
     
-    tmp = gene_variant_input()
-    var_irange=IRanges(start=tmp$pos,end=tmp$pos)
-    var_grange = GRanges(seqnames=tmp$chr,ranges=var_irange,strand=NULL)
-    atrack = AnnotationTrack(var_grange, name = input$gene_choice)
-    gtrack = GenomeAxisTrack()
-    grtrack3 = GeneRegionTrack(range=txdb,chromosome = paste0("chr",),start=start(range(var_grange)),end=end(range(var_grange)))
-    
-    output$genome = renderPlot(
-        
-    )
+    output$genome = renderPlot({
+        tmp = gene_variant_input()
+        var_irange=IRanges(start=tmp$pos,end=tmp$pos)
+        var_grange = GRanges(seqnames=tmp$chr,ranges=var_irange,strand=NULL)
+        atrack = AnnotationTrack(var_grange, name = input$gene_choice)
+        gtrack = GenomeAxisTrack()
+        grtrack = GeneRegionTrack(range=txdb,chromosome = paste0("chr",tmp$chr[1]),start=start(range(var_grange)),end=end(range(var_grange)))
+        plotTracks(list(gtrack, atrack, grtrack3))
+    })
     
     allele_freq=reactive(
         gene_variant_input() %>% gather(key="AF",value="freq",AF,AF_AFR,AF_AMR,AF_EAS,AF_EUR,AF_SAS) %>% 
